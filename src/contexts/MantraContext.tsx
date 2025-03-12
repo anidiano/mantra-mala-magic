@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -256,7 +255,7 @@ export function MantraProvider({ children }: { children: React.ReactNode }) {
     toast(`Auto-repeat ${!enableAutoRepeat ? "enabled" : "disabled"}`);
   };
 
-  // Setup auto-repeat interval
+  // Setup auto-repeat interval for manual counter
   useEffect(() => {
     let interval: number | undefined;
     
