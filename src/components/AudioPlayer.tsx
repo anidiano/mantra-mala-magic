@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play, Volume1, Volume2, VolumeX } from "lucide-react";
 import { useMantra } from "@/contexts/MantraContext";
@@ -9,6 +8,7 @@ export function AudioPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [volume, setVolume] = useState(0.5);
   const [audioLoaded, setAudioLoaded] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   useEffect(() => {
     const audio = new Audio("/mantras/shri-swami-samarth.mp3");
@@ -18,12 +18,14 @@ export function AudioPlayer() {
     audio.preload = "auto";
     
     audio.addEventListener("canplaythrough", () => {
+      console.log("Audio loaded successfully");
       setAudioLoaded(true);
+      setAudioError(null);
     });
     
     audio.addEventListener("error", (e) => {
       console.error("Audio error:", e);
-      // Fallback for demo purposes if audio file doesn't exist
+      setAudioError("Could not load audio file. Please check that the file exists.");
       setAudioLoaded(true);
     });
     
@@ -40,9 +42,16 @@ export function AudioPlayer() {
     if (!audioRef.current) return;
     
     if (isPlaying) {
-      audioRef.current.play().catch(e => {
-        console.error("Error playing audio:", e);
-      });
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          console.error("Error playing audio:", e);
+          if (e.name === "NotAllowedError") {
+            setAudioError("Playback was blocked. Please interact with the page first.");
+          }
+        });
+      }
     } else {
       audioRef.current.pause();
     }
@@ -138,6 +147,12 @@ export function AudioPlayer() {
       {!audioLoaded && (
         <p className="text-xs text-muted-foreground mt-2 animate-pulse">
           Loading audio...
+        </p>
+      )}
+      
+      {audioError && (
+        <p className="text-xs text-red-500 mt-2">
+          {audioError}
         </p>
       )}
     </div>
