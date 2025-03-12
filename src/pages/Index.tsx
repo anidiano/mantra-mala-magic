@@ -6,8 +6,9 @@ import Counter from "@/components/Counter";
 import MalaTracker from "@/components/MalaTracker";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useMantra } from "@/contexts/MantraContext";
-import { Repeat, RotateCcw } from "lucide-react";
+import { Repeat, RotateCcw, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const Index = () => {
   const { 
@@ -15,6 +16,11 @@ const Index = () => {
     enableAutoRepeat,
     toggleAutoRepeat
   } = useMantra();
+
+  // Function to show a tooltip about the upload feature
+  const showUploadHelp = () => {
+    toast.info("Click the upload button in the audio player to add your own mantra audio");
+  };
 
   return (
     <Layout>
@@ -49,6 +55,13 @@ const Index = () => {
           <p className="text-sm text-muted-foreground">
             Shri Swami Samarth Mantra Jap Counter
           </p>
+          <button
+            onClick={showUploadHelp}
+            className="mt-1 inline-flex items-center text-xs text-primary hover:underline"
+          >
+            <Upload className="h-3 w-3 mr-1" />
+            Add your own mantra audio
+          </button>
         </div>
         
         <AudioPlayer />

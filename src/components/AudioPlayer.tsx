@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
-import { Pause, Play, Volume1, Volume2, VolumeX, FileAudio, Upload } from "lucide-react";
+import { Pause, Play, Volume1, Volume2, VolumeX, Upload } from "lucide-react";
 import { useMantra } from "@/contexts/MantraContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ export function AudioPlayer() {
     setAudioError(null);
     
     const audio = new Audio(source);
-    audio.loop = false; // We'll handle looping manually to increment counter
+    audio.loop = true; // Enable looping directly on the audio element
     audio.volume = volume;
     audio.playbackRate = playbackSpeed;
     audio.preload = "auto";
@@ -43,13 +43,9 @@ export function AudioPlayer() {
       setAudioLoaded(true);
     });
 
-    // When audio ends, increment the mantra count and replay if still playing
+    // When audio completes one loop, increment the mantra count
     audio.addEventListener("ended", () => {
       incrementCount();
-      if (isPlaying) {
-        audio.currentTime = 0;
-        audio.play().catch(err => console.error("Error replaying audio:", err));
-      }
     });
     
     audioRef.current = audio;
@@ -126,7 +122,7 @@ export function AudioPlayer() {
     setAudioName(file.name.split('.')[0]); // Set name without extension
     
     // Setup new audio with uploaded file
-    setupAudio(objectUrl);
+    const audio = setupAudio(objectUrl);
     
     toast.success(`Uploaded mantra: ${file.name}`);
     
@@ -165,6 +161,7 @@ export function AudioPlayer() {
             onClick={triggerFileUpload}
             className="p-2 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center transition-all hover:bg-secondary/80"
             aria-label="Upload audio"
+            title="Upload your own mantra audio"
           >
             <Upload className="h-4 w-4" />
           </button>
