@@ -26,7 +26,7 @@ const Index = () => {
       >
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">
-            Shri Swami Samarth
+            Vaishali
           </h1>
           <div className="flex space-x-2">
             <button
@@ -47,7 +47,7 @@ const Index = () => {
         
         <div className="mb-4 text-center">
           <p className="text-sm text-muted-foreground">
-            Mantra Jap Counter
+            Shri Swami Samarth Mantra Jap Counter
           </p>
         </div>
         
