@@ -29,22 +29,27 @@ export function AudioPlayer() {
 
   // Setup audio element with current settings
   const setupAudio = (source: string) => {
+    // Clean up any existing audio element
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.src = "";
+      audioRef.current.removeEventListener('ended', handleAudioEnded);
+      audioRef.current = null;
     }
 
     setAudioLoaded(false);
     setAudioError(null);
     
-    const audio = new Audio(source);
-    audio.loop = true; // Enable looping on the audio element
+    // Create a new audio element
+    const audio = new Audio();
+    audio.src = source;
+    audio.loop = true; // Enable looping
     audio.volume = volume;
     audio.playbackRate = playbackSpeed;
     audio.preload = "auto";
     
+    // Add event listeners
     audio.addEventListener("canplaythrough", () => {
-      console.log("Audio loaded successfully");
+      console.log("Audio loaded successfully:", source);
       setAudioLoaded(true);
       setAudioError(null);
     });
@@ -52,28 +57,34 @@ export function AudioPlayer() {
     audio.addEventListener("error", (e) => {
       console.error("Audio error:", e);
       setAudioError("Could not load audio file. Please check that the file is a valid audio format.");
-      setAudioLoaded(true);
+      setAudioLoaded(false);
     });
 
-    // When audio completes one loop, increment the mantra count
-    audio.addEventListener("ended", () => {
-      console.log("Audio ended, incrementing count");
-      incrementCount();
-    });
+    // Handle audio completion (used for counting)
+    audio.addEventListener("ended", handleAudioEnded);
     
     audioRef.current = audio;
-    
     return audio;
+  };
+
+  // Function to handle when audio ends (used for looping and counting)
+  const handleAudioEnded = () => {
+    console.log("Audio ended, incrementing count");
+    incrementCount();
+    // No need to manually restart as loop=true does this
   };
 
   // Initial audio setup on component mount
   useEffect(() => {
+    console.log("Setting up initial audio:", audioSource);
     const audio = setupAudio(audioSource);
     
     return () => {
-      audio.pause();
-      audio.src = "";
-      audioRef.current = null;
+      if (audio) {
+        audio.pause();
+        audio.src = "";
+        audio.removeEventListener('ended', handleAudioEnded);
+      }
     };
   }, []);
 
@@ -82,13 +93,16 @@ export function AudioPlayer() {
     if (!audioRef.current) return;
     
     if (isPlaying) {
+      console.log("Attempting to play audio:", audioRef.current.src);
       const playPromise = audioRef.current.play();
       
       if (playPromise !== undefined) {
         playPromise.catch(e => {
           console.error("Error playing audio:", e);
           if (e.name === "NotAllowedError") {
-            setAudioError("Playback was blocked. Please interact with the page first.");
+            toast.error("Playback was blocked. Please interact with the page first.");
+          } else {
+            toast.error(`Audio playback error: ${e.message}`);
           }
         });
       }
@@ -131,10 +145,10 @@ export function AudioPlayer() {
     
     // Create object URL for the uploaded file
     const objectUrl = URL.createObjectURL(file);
-    setAudioSource(objectUrl);
     
     const name = file.name.split('.')[0]; // Set name without extension
     setAudioName(name);
+    setAudioSource(objectUrl);
     
     // Setup new audio with uploaded file
     setupAudio(objectUrl);
@@ -168,7 +182,7 @@ export function AudioPlayer() {
     setAudioName(audioName);
     setupAudio(audioUrl);
     setShowAudioList(false);
-    toast(`Selected mantra: ${audioName}`);
+    toast.success(`Selected mantra: ${audioName}`);
   };
 
   // Trigger file input click
@@ -302,7 +316,7 @@ export function AudioPlayer() {
         </button>
       </div>
       
-      {!audioLoaded && (
+      {!audioLoaded && !audioError && (
         <p className="text-xs text-muted-foreground mt-2 animate-pulse">
           Loading audio...
         </p>

@@ -19,12 +19,16 @@ const Index = () => {
 
   // Function to show a tooltip about the upload feature
   const showUploadHelp = () => {
-    toast.info("Click the upload button in the audio player to add your own mantra audio");
+    toast.info(
+      "Upload your own mantra audio to personalize your practice. Click the upload button in the audio player to add your files."
+    );
   };
 
   // Function to show a tooltip about the audio selection feature
   const showAudioSelectHelp = () => {
-    toast.info("Click the list button in the audio player to select from previously uploaded mantras");
+    toast.info(
+      "Select from previously uploaded mantras. Your uploaded mantras are saved for future sessions."
+    );
   };
 
   return (
@@ -60,20 +64,20 @@ const Index = () => {
           <p className="text-sm text-muted-foreground">
             Shri Swami Samarth Mantra Jap Counter
           </p>
-          <div className="flex justify-center space-x-4 mt-1">
+          <div className="flex justify-center space-x-4 mt-2">
             <button
               onClick={showUploadHelp}
-              className="inline-flex items-center text-xs text-primary hover:underline"
+              className="inline-flex items-center px-3 py-1 text-xs bg-secondary/80 hover:bg-secondary rounded-full text-secondary-foreground"
             >
               <Upload className="h-3 w-3 mr-1" />
-              Add audio
+              Upload Audio
             </button>
             <button
               onClick={showAudioSelectHelp}
-              className="inline-flex items-center text-xs text-primary hover:underline"
+              className="inline-flex items-center px-3 py-1 text-xs bg-secondary/80 hover:bg-secondary rounded-full text-secondary-foreground"
             >
               <List className="h-3 w-3 mr-1" />
-              Select saved audio
+              Saved Audio
             </button>
           </div>
         </div>
