@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export function AudioPlayer() {
-  const { isPlaying, togglePlayback, playbackSpeed, setPlaybackSpeed, incrementCount } = useMantra();
+  const { isPlaying, togglePlayback, playbackSpeed, setPlaybackSpeed, incrementCount, enableAutoRepeat } = useMantra();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [volume, setVolume] = useState(0.5);
@@ -27,6 +27,12 @@ export function AudioPlayer() {
     localStorage.setItem("savedAudios", JSON.stringify(savedAudios));
   }, [savedAudios]);
 
+  // Function to handle when audio ends (used for counting)
+  const handleAudioEnded = () => {
+    console.log("Audio ended, incrementing count");
+    incrementCount();
+  };
+
   // Setup audio element with current settings
   const setupAudio = (source: string) => {
     // Clean up any existing audio element
@@ -42,7 +48,7 @@ export function AudioPlayer() {
     // Create a new audio element
     const audio = new Audio();
     audio.src = source;
-    audio.loop = true; // Enable looping
+    audio.loop = false; // Disable loop to ensure 'ended' event fires
     audio.volume = volume;
     audio.playbackRate = playbackSpeed;
     audio.preload = "auto";
@@ -60,18 +66,11 @@ export function AudioPlayer() {
       setAudioLoaded(false);
     });
 
-    // Handle audio completion (used for counting)
+    // Add the ended event listener to count and restart if auto-repeat is enabled
     audio.addEventListener("ended", handleAudioEnded);
     
     audioRef.current = audio;
     return audio;
-  };
-
-  // Function to handle when audio ends (used for looping and counting)
-  const handleAudioEnded = () => {
-    console.log("Audio ended, incrementing count");
-    incrementCount();
-    // No need to manually restart as loop=true does this
   };
 
   // Initial audio setup on component mount
@@ -87,6 +86,40 @@ export function AudioPlayer() {
       }
     };
   }, []);
+
+  // Handle ended event to restart audio if auto-repeat is enabled
+  useEffect(() => {
+    const handleAutoRepeat = () => {
+      if (!audioRef.current) return;
+      
+      const endedHandler = () => {
+        // First increment the count (handled by handleAudioEnded)
+        // Then restart the audio if auto-repeat is enabled
+        if (enableAutoRepeat && audioRef.current) {
+          console.log("Auto-repeat enabled, restarting audio");
+          setTimeout(() => {
+            if (audioRef.current && isPlaying) {
+              audioRef.current.currentTime = 0;
+              audioRef.current.play().catch(e => {
+                console.error("Error restarting audio:", e);
+              });
+            }
+          }, 100); // Small delay to ensure the count is registered
+        }
+      };
+      
+      audioRef.current.addEventListener("ended", endedHandler);
+      
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.removeEventListener("ended", endedHandler);
+        }
+      };
+    };
+    
+    const cleanup = handleAutoRepeat();
+    return cleanup;
+  }, [enableAutoRepeat, isPlaying]);
 
   // Handle play/pause
   useEffect(() => {
@@ -243,6 +276,9 @@ export function AudioPlayer() {
       
       <div className="text-center mb-3 text-sm">
         <span className="font-medium">{audioName}</span>
+        {enableAutoRepeat && (
+          <span className="text-xs block text-primary mt-1">Auto-Count Enabled</span>
+        )}
       </div>
       
       {showAudioList && (

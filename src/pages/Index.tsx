@@ -53,6 +53,7 @@ const Index = () => {
                   : "glass-morphism text-foreground"
               )}
               aria-label="Toggle auto-repeat"
+              title={enableAutoRepeat ? "Auto-count enabled" : "Auto-count disabled"}
             >
               <Repeat className="h-5 w-5" />
             </button>
@@ -63,6 +64,9 @@ const Index = () => {
         <div className="mb-4 text-center">
           <p className="text-sm text-muted-foreground">
             Shri Swami Samarth Mantra Jap Counter
+          </p>
+          <p className="text-xs text-primary mt-1 font-medium">
+            Auto-counting enabled by default
           </p>
           <div className="flex justify-center space-x-4 mt-2">
             <button

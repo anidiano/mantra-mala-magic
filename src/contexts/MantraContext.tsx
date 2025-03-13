@@ -67,7 +67,7 @@ export function MantraProvider({ children }: { children: React.ReactNode }) {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [currentMantras, setCurrentMantras] = useState(0);
   const [currentMalas, setCurrentMalas] = useState(0);
-  const [enableAutoRepeat, setEnableAutoRepeat] = useState(false);
+  const [enableAutoRepeat, setEnableAutoRepeat] = useState(true);
   const [stats, setStats] = useState<MantraStats>(() => {
     const saved = localStorage.getItem("mantraStats");
     if (saved) {
@@ -254,21 +254,6 @@ export function MantraProvider({ children }: { children: React.ReactNode }) {
     setEnableAutoRepeat(prev => !prev);
     toast(`Auto-repeat ${!enableAutoRepeat ? "enabled" : "disabled"}`);
   };
-
-  // Setup auto-repeat interval for manual counter
-  useEffect(() => {
-    let interval: number | undefined;
-    
-    if (isPlaying && enableAutoRepeat) {
-      interval = window.setInterval(() => {
-        incrementCount();
-      }, 5000 / playbackSpeed); // Adjust timing based on playback speed
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isPlaying, enableAutoRepeat, playbackSpeed]);
 
   return (
     <MantraContext.Provider
