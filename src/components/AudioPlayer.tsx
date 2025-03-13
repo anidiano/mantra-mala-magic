@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
-import { Pause, Play, Volume1, Volume2, VolumeX, Upload } from "lucide-react";
+import { Pause, Play, Volume1, Volume2, VolumeX, Upload, List } from "lucide-react";
 import { useMantra } from "@/contexts/MantraContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -14,6 +14,18 @@ export function AudioPlayer() {
   const [audioError, setAudioError] = useState<string | null>(null);
   const [audioSource, setAudioSource] = useState<string>("/mantras/shri-swami-samarth.mp3");
   const [audioName, setAudioName] = useState<string>("Shri Swami Samarth");
+  const [savedAudios, setSavedAudios] = useState<Array<{name: string, url: string}>>(() => {
+    const saved = localStorage.getItem("savedAudios");
+    return saved ? JSON.parse(saved) : [
+      { name: "Shri Swami Samarth", url: "/mantras/shri-swami-samarth.mp3" }
+    ];
+  });
+  const [showAudioList, setShowAudioList] = useState(false);
+
+  // Save audios to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("savedAudios", JSON.stringify(savedAudios));
+  }, [savedAudios]);
 
   // Setup audio element with current settings
   const setupAudio = (source: string) => {
@@ -26,7 +38,7 @@ export function AudioPlayer() {
     setAudioError(null);
     
     const audio = new Audio(source);
-    audio.loop = true; // Enable looping directly on the audio element
+    audio.loop = true; // Enable looping on the audio element
     audio.volume = volume;
     audio.playbackRate = playbackSpeed;
     audio.preload = "auto";
@@ -45,6 +57,7 @@ export function AudioPlayer() {
 
     // When audio completes one loop, increment the mantra count
     audio.addEventListener("ended", () => {
+      console.log("Audio ended, incrementing count");
       incrementCount();
     });
     
@@ -119,10 +132,27 @@ export function AudioPlayer() {
     // Create object URL for the uploaded file
     const objectUrl = URL.createObjectURL(file);
     setAudioSource(objectUrl);
-    setAudioName(file.name.split('.')[0]); // Set name without extension
+    
+    const name = file.name.split('.')[0]; // Set name without extension
+    setAudioName(name);
     
     // Setup new audio with uploaded file
-    const audio = setupAudio(objectUrl);
+    setupAudio(objectUrl);
+    
+    // Save to list of audios
+    setSavedAudios(prev => {
+      // Check if this audio name already exists
+      const exists = prev.some(audio => audio.name === name);
+      if (exists) {
+        // Update existing entry
+        return prev.map(audio => 
+          audio.name === name ? { name, url: objectUrl } : audio
+        );
+      } else {
+        // Add new entry
+        return [...prev, { name, url: objectUrl }];
+      }
+    });
     
     toast.success(`Uploaded mantra: ${file.name}`);
     
@@ -132,11 +162,24 @@ export function AudioPlayer() {
     }
   };
 
+  // Select audio from saved list
+  const selectAudio = (audioName: string, audioUrl: string) => {
+    setAudioSource(audioUrl);
+    setAudioName(audioName);
+    setupAudio(audioUrl);
+    setShowAudioList(false);
+    toast(`Selected mantra: ${audioName}`);
+  };
+
   // Trigger file input click
   const triggerFileUpload = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
+  };
+
+  const toggleAudioList = () => {
+    setShowAudioList(prev => !prev);
   };
 
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
@@ -157,6 +200,14 @@ export function AudioPlayer() {
         </button>
         
         <div className="flex space-x-2">
+          <button
+            onClick={toggleAudioList}
+            className="p-2 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center transition-all hover:bg-secondary/80"
+            aria-label="Show saved mantras"
+            title="Select a saved mantra"
+          >
+            <List className="h-4 w-4" />
+          </button>
           <button
             onClick={triggerFileUpload}
             className="p-2 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center transition-all hover:bg-secondary/80"
@@ -179,6 +230,27 @@ export function AudioPlayer() {
       <div className="text-center mb-3 text-sm">
         <span className="font-medium">{audioName}</span>
       </div>
+      
+      {showAudioList && (
+        <div className="mb-3 max-h-32 overflow-y-auto bg-background/50 rounded p-2">
+          <h4 className="text-xs font-medium mb-1 text-muted-foreground">Saved Mantras</h4>
+          <ul className="space-y-1">
+            {savedAudios.map((audio, index) => (
+              <li key={index}>
+                <button
+                  onClick={() => selectAudio(audio.name, audio.url)}
+                  className={cn(
+                    "w-full text-left text-xs py-1 px-2 rounded hover:bg-secondary/50",
+                    audioName === audio.name ? "bg-primary/10 font-medium" : ""
+                  )}
+                >
+                  {audio.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       
       <div className="flex items-center justify-center space-x-3 mb-3">
         <VolumeIcon className="h-4 w-4 text-muted-foreground" />

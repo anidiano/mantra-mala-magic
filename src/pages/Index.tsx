@@ -6,7 +6,7 @@ import Counter from "@/components/Counter";
 import MalaTracker from "@/components/MalaTracker";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useMantra } from "@/contexts/MantraContext";
-import { Repeat, RotateCcw, Upload } from "lucide-react";
+import { Repeat, RotateCcw, Upload, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -20,6 +20,11 @@ const Index = () => {
   // Function to show a tooltip about the upload feature
   const showUploadHelp = () => {
     toast.info("Click the upload button in the audio player to add your own mantra audio");
+  };
+
+  // Function to show a tooltip about the audio selection feature
+  const showAudioSelectHelp = () => {
+    toast.info("Click the list button in the audio player to select from previously uploaded mantras");
   };
 
   return (
@@ -55,13 +60,22 @@ const Index = () => {
           <p className="text-sm text-muted-foreground">
             Shri Swami Samarth Mantra Jap Counter
           </p>
-          <button
-            onClick={showUploadHelp}
-            className="mt-1 inline-flex items-center text-xs text-primary hover:underline"
-          >
-            <Upload className="h-3 w-3 mr-1" />
-            Add your own mantra audio
-          </button>
+          <div className="flex justify-center space-x-4 mt-1">
+            <button
+              onClick={showUploadHelp}
+              className="inline-flex items-center text-xs text-primary hover:underline"
+            >
+              <Upload className="h-3 w-3 mr-1" />
+              Add audio
+            </button>
+            <button
+              onClick={showAudioSelectHelp}
+              className="inline-flex items-center text-xs text-primary hover:underline"
+            >
+              <List className="h-3 w-3 mr-1" />
+              Select saved audio
+            </button>
+          </div>
         </div>
         
         <AudioPlayer />
